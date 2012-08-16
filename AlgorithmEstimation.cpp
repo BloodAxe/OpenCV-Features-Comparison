@@ -8,6 +8,7 @@ FrameMatchingStatistics::FrameMatchingStatistics()
 	ratioTestFalseLevel = 0;
 	meanDistance = 0;
 	stdDevDistance = 0;
+    consumedTimeMs = 0;
 }
 
 
@@ -17,7 +18,7 @@ bool computeMatchesDistanceStatistics(const Matches& matches, float& meanDistanc
         return false;
     
     std::vector<float> distances(matches.size());
-    for (int i=0; i<matches.size(); i++)
+    for (size_t i=0; i<matches.size(); i++)
         distances[i] = matches[i].distance;
     
     cv::Scalar mean, dev;
@@ -63,9 +64,9 @@ bool performEstimation(const FeatureAlgorithm& alg,
 	stat.resize(x.size());
     
 	//const bool useTransformedKp = transformation.canTransformKeypoints();
-    
+    int count = x.size();
 #pragma omp parallel for
-	for (int i=0; i<x.size(); i++)
+	for (int i=0; i<count; i++)
 	{
 		float       arg = x[i];
 		cv::Mat     res;
@@ -76,11 +77,11 @@ bool performEstimation(const FeatureAlgorithm& alg,
         FrameMatchingStatistics& s = stat[i];
 
 		transformation.transform(arg, sourceImage, res);
+        
+        int64 start = cv::getTickCount();
+        
         alg.extractFeatures(res, resKpReal, resDesc);
-        
-        cv::imshow("Transformed image", res);
-        cv::waitKey(5);
-        
+                        
         if (alg.knMatchSupported)
         {
             std::vector<Matches> knMatches;
@@ -88,19 +89,22 @@ bool performEstimation(const FeatureAlgorithm& alg,
             ratioTest(knMatches, 0.75, matches);
             
             // Compute percent of false matches that were rejected by ratio test
-            s.ratioTestFalseLevel =(float)(knMatches.size() - matches.size()) / (float) knMatches.size();
+            s.ratioTestFalseLevel = (float)(knMatches.size() - matches.size()) / (float) knMatches.size();
         }
         else
         {
             alg.matchFeatures(sourceDesc, resDesc, matches);
         }
         
+        int64 end = cv::getTickCount();
+
         // Some simple stat:
         s.argumentValue  = arg;
         s.totalKeypoints = resKpReal.size();
+        s.consumedTimeMs = (end - start) * 1000. / cv::getTickFrequency();
         
 		// Compute overall percent of matched keypoints
-        s.percentOfMatches         = (float) matches.size() / (float)(std::max(sourceKp.size(), resKpReal.size()));
+        s.percentOfMatches = (float) matches.size() / (float)(std::max(sourceKp.size(), resKpReal.size()));
         
         // Compute matching statistics
         computeMatchesDistanceStatistics(matches, s.meanDistance, s.stdDevDistance);
@@ -114,12 +118,13 @@ bool performEstimation(const FeatureAlgorithm& alg,
 std::ostream& header(std::ostream& str)
 {
     return str
-    << "\"Value\""               << "\t"
-    << "\"Total keypoints\""               << "\t"
-    << "\"Percent of matches\""  << "\t"
-    << "\"Mean distance\""       << "\t"
-    << "\"StdDev\""      << "\t"
-    << "\"Ratio test false level\"";
+    << "\"Value\""                  << "\t"
+    << "\"Total keypoints\""        << "\t"
+    << "\"Percent of matches\""     << "\t"
+    << "\"Mean distance\""          << "\t"
+    << "\"StdDev\""                 << "\t"
+    << "\"Ratio test false level\"" << "\t"
+    << "\"Time\"";
 }
 
 
@@ -130,7 +135,8 @@ std::ostream& operator<<(std::ostream& str, const FrameMatchingStatistics& stat)
                << stat.percentOfMatches << "\t"
                << stat.meanDistance << "\t"
                << stat.stdDevDistance << "\t"
-               << stat.ratioTestFalseLevel;
+               << stat.ratioTestFalseLevel << "\t"
+               << stat.consumedTimeMs;
 }
 
 std::ostream& operator<<(std::ostream& str, const std::vector<FrameMatchingStatistics>& stat)

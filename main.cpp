@@ -7,9 +7,13 @@
 
 int main(int argc, const char* argv[])
 {
+    // Print OpenCV build info:
+    // std::cout << cv::getBuildInformation() << std::endl;
+    
     std::vector<FeatureAlgorithm>              algorithms;
     std::vector<cv::Ptr<ImageTransformation> > transformations;
     
+    // Initialize list of algorithm tuples:
     algorithms.push_back(FeatureAlgorithm("ORB - 2",
                                           new cv::ORB(),
                                           new cv::ORB(),
@@ -24,14 +28,25 @@ int main(int argc, const char* argv[])
                                           new cv::ORB(500,1.2, 8,31,0, 3),
                                           new cv::ORB(500,1.2, 8,31,0, 3),
                                           new cv::BFMatcher(cv::NORM_HAMMING2, false)));
-    
-    /*
-    algorithms.push_back(FeatureAlgorithm("ORB",
-                                          new cv::SurfFeatureDetector(2000,4),
-                                          new cv::FREAK(),
+
+    algorithms.push_back(FeatureAlgorithm("FAST+BRIEF",
+                                          new cv::FastFeatureDetector(),
+                                          new cv::BriefDescriptorExtractor(),
                                           new cv::BFMatcher(cv::NORM_HAMMING, false)));
-    */
-    
+
+    /*
+    algorithms.push_back(FeatureAlgorithm("SURF-BruteForce",
+                                          new cv::SurfFeatureDetector(),
+                                          new cv::SurfDescriptorExtractor(),
+                                          new cv::BFMatcher(cv::NORM_L2, false)));
+
+    algorithms.push_back(FeatureAlgorithm("SURF-Flann",
+                                          new cv::SurfFeatureDetector(),
+                                          new cv::SurfDescriptorExtractor(),
+                                          new cv::FlannBasedMatcher()));
+     */
+
+    // Initialize list of used transformations:
     transformations.push_back(new GaussianBlurTransform(9));
     transformations.push_back(new BrightnessImageTransform(-127, +127,1));
     transformations.push_back(new ImageRotationTransformation(0, 360, 1, cv::Point2f(0.5f,0.5f)));
@@ -54,7 +69,7 @@ int main(int argc, const char* argv[])
         
         std::cout << "[" << testImagePath << "]" << std::endl;
         
-        for (int transformIndex = 0; transformIndex < transformations.size(); transformIndex++)
+        for (size_t transformIndex = 0; transformIndex < transformations.size(); transformIndex++)
         {
             const ImageTransformation& trans = *transformations[transformIndex].obj;
             std::cout << "Transformation:" << trans.name << std::endl;

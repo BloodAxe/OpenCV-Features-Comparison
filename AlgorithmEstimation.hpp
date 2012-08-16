@@ -16,6 +16,8 @@ struct FrameMatchingStatistics
 	float meanDistance;
 	float stdDevDistance;
     
+    double consumedTimeMs;
+    
     static std::ostream& header(std::ostream& str);
 };
 
