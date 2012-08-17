@@ -26,10 +26,12 @@ std::ostream& operator<<(std::ostream& str, const std::vector<FrameMatchingStati
 
 bool computeMatchesDistanceStatistics(const Matches& matches, float& meanDistance, float& stdDev);
 
+typedef std::vector<FrameMatchingStatistics> SingleRunStatistics;
+
 bool performEstimation(const FeatureAlgorithm& alg,
                        const ImageTransformation& transformation,
                        const cv::Mat& sourceImage,
-                       std::vector<FrameMatchingStatistics>& stat);
+                       SingleRunStatistics& stat);
 
 
 #endif
