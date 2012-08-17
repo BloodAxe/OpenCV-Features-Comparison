@@ -5,6 +5,7 @@
 
 typedef std::vector<cv::KeyPoint> Keypoints;
 typedef cv::Mat                   Descriptors;
+typedef std::vector<cv::DMatch>   Matches;
 
 class ImageTransformation
 {
@@ -20,7 +21,9 @@ public:
     
     virtual ~ImageTransformation();
     
+    static bool findHomography( const Keypoints& source, const Keypoints& result, const Matches& input, Matches& inliers, cv::Mat& homography);
 protected:
+
     ImageTransformation(const std::string& transformationName)
     : name(transformationName)
     {

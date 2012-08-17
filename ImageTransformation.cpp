@@ -16,6 +16,35 @@ ImageTransformation::~ImageTransformation()
 {
 }
 
+bool ImageTransformation::findHomography( const Keypoints& source, const Keypoints& result, const Matches& input, Matches& inliers, cv::Mat& homography)
+{
+    if (input.size() < 8)
+        return false;
+
+    std::vector<cv::Point2f> srcPoints, dstPoints;
+    const int pointsCount = input.size();
+
+    for (int i=0; i<pointsCount; i++)
+    {
+        srcPoints.push_back(source[input[i].trainIdx].pt);
+        dstPoints.push_back(result[input[i].queryIdx].pt);
+    }
+
+    std::vector<unsigned char> status;
+    cv::findHomography(srcPoints, dstPoints, CV_FM_RANSAC, 3, status);
+
+    inliers.clear();
+    for (int i=0; i<pointsCount; i++)
+    {
+        if (status[i])
+        {
+            inliers.push_back(input[i]);
+        }
+    }
+
+    return true;
+}
+
 #pragma mark - ImageScalingTransformation implementation
 
 ImageRotationTransformation::ImageRotationTransformation(float startAngleInDeg, float endAngleInDeg, float step, cv::Point2f rotationCenterInUnitSpace)
@@ -63,7 +92,7 @@ std::vector<float> ImageScalingTransformation::getX() const
 
 void ImageScalingTransformation::transform(float t, const cv::Mat& source, cv::Mat& result)const
 {
-    cv::Size dstSize(source.cols * t, source.rows * t);
+    cv::Size dstSize(static_cast<int>(source.cols * t + 0.5f), static_cast<int>(source.rows * t + 0.5f));
     cv::resize(source, result, dstSize, CV_INTER_AREA);
 }
 
@@ -73,8 +102,8 @@ GaussianBlurTransform::GaussianBlurTransform(int maxKernelSize)
 : ImageTransformation("Gaussian blur")
 , m_maxKernelSize(maxKernelSize)
 {
-    for (float arg = 1; arg <= maxKernelSize; arg++)
-        m_args.push_back(arg);
+    for (int arg = 1; arg <= maxKernelSize; arg++)
+        m_args.push_back(static_cast<float>(arg));
 }
 
 std::vector<float> GaussianBlurTransform::getX() const
@@ -97,7 +126,7 @@ BrightnessImageTransform::BrightnessImageTransform(int min, int max, int step)
 , m_step(step)
 {
     for (int arg = min; arg <= max; arg++)
-        m_args.push_back(arg);
+        m_args.push_back(static_cast<float>(arg));
 }
 
 std::vector<float> BrightnessImageTransform::getX() const
