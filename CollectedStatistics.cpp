@@ -1,6 +1,6 @@
 #include "CollectedStatistics.hpp"
 
-#include <strstream>
+#include <sstream>
 #include <iostream>
 #include <iterator>
 #include <numeric>
@@ -8,14 +8,14 @@
 template<typename T>
 std::string quote(const T& t)
 {
-    std::ostrstream quoteStr;
+    std::ostringstream quoteStr;
     quoteStr << "\"" << t << "\"";
     return quoteStr.str();
 }
 
 std::ostream& tab(std::ostream& str)
 {
-    return str << tab;
+    return str << "\t";
 }
 
 std::ostream& null(std::ostream& str)
