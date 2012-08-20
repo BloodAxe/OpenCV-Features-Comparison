@@ -125,7 +125,7 @@ BrightnessImageTransform::BrightnessImageTransform(int min, int max, int step)
 , m_max(max)
 , m_step(step)
 {
-    for (int arg = min; arg <= max; arg++)
+    for (int arg = min; arg <= max; arg += step)
         m_args.push_back(static_cast<float>(arg));
 }
 
