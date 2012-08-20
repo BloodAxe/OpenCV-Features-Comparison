@@ -48,7 +48,15 @@ bool performEstimation
   Keypoints   sourceKp;
   Descriptors sourceDesc;
 
-  if (!alg.extractFeatures(sourceImage, sourceKp, sourceDesc))
+  cv::Mat gray;
+  if (sourceImage.channels() == 3)
+      cv::cvtColor(sourceImage, gray, CV_BGR2GRAY);
+  else if (sourceImage.channels() == 4)
+      cv::cvtColor(sourceImage, gray, CV_BGRA2GRAY);
+  else if(sourceImage.channels() == 1)
+      gray = sourceImage;
+
+  if (!alg.extractFeatures(gray, sourceKp, sourceDesc))
     return false;
 
   std::vector<float> x = transformation.getX();
@@ -61,7 +69,7 @@ bool performEstimation
   Descriptors resDesc;
   Matches     matches;
 
-  // To convert ticks to miliseconds
+  // To convert ticks to milliseconds
   const double toMsMul = 1000. / cv::getTickFrequency();
 
 #pragma omp parallel for private(transformedImage, resKpReal, resDesc, matches)
@@ -70,7 +78,7 @@ bool performEstimation
     float       arg = x[i];
     FrameMatchingStatistics& s = stat[i];
 
-    transformation.transform(arg, sourceImage, transformedImage);
+    transformation.transform(arg, gray, transformedImage);
 
     int64 start = cv::getTickCount();
 
@@ -109,7 +117,7 @@ bool performEstimation
     s.consumedTimeMs = (end - start) * toMsMul;
 
     // Compute overall percent of matched keypoints
-    s.percentOfMatches      = (float) matches.size() / (float)(std::max(sourceKp.size(), resKpReal.size()));
+    s.percentOfMatches      = (float) matches.size() / (float)(std::min(sourceKp.size(), resKpReal.size()));
     s.correctMatchesPercent = (float) correctMatches.size() / (float)matches.size();
 
     // Compute matching statistics
