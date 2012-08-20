@@ -13,7 +13,6 @@ public:
     FeatureAlgorithm(std::string name, cv::Ptr<cv::FeatureDetector> d, cv::Ptr<cv::DescriptorExtractor> e, cv::Ptr<cv::DescriptorMatcher> m);
     
 	std::string name;
-		
 
     bool knMatchSupported;
     

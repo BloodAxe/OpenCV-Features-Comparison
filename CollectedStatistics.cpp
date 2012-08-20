@@ -56,9 +56,11 @@ std::ostream& FrameMatchingStatistics::writeElement(std::ostream& str, Statistic
 
         case StatisticsElementMeanDistance:
             str << meanDistance << tab;
+            break;
 
         case StatisticsElementMatchingRatio:
-            str << correctMatchesPercent * percentOfMatches * 100 << tab;
+            str << (correctMatchesPercent * percentOfMatches * 100) << tab;
+            break;
 
         default:
             str << null << tab;
