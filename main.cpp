@@ -15,14 +15,16 @@ const bool USE_VERBOSE_TRANSFORMATIONS = false;
 int main(int argc, const char* argv[])
 {
     // Print OpenCV build info:
-    std::cout << cv::getBuildInformation() << std::endl;
-    return 0;
+    //std::cout << cv::getBuildInformation() << std::endl;
+    //return 0;
     std::vector<FeatureAlgorithm>              algorithms;
     std::vector<cv::Ptr<ImageTransformation> > transformations;
 
     bool useCrossCheck = true;
 
     // Initialize list of algorithm tuples:
+    
+    /*
     algorithms.push_back(FeatureAlgorithm("BRISK/BRISK/BF",
         new cv::BriskFeatureDetector(60,4),
         new cv::BriskDescriptorExtractor(),
@@ -32,42 +34,57 @@ int main(int argc, const char* argv[])
         new cv::ORB(),
         new cv::ORB(),
         new cv::BFMatcher(cv::NORM_HAMMING, useCrossCheck)));
+    */
 
-    algorithms.push_back(FeatureAlgorithm("SURF/BRISK/BF",
+    algorithms.push_back(FeatureAlgorithm("SURF/BRISK(1)/BF",
         new cv::SurfFeatureDetector(),
         new cv::BriskDescriptorExtractor(),
         new cv::BFMatcher(cv::NORM_HAMMING, useCrossCheck)));
+    
+    algorithms.push_back(FeatureAlgorithm("SURF/BRISK(2)/BF",
+                                          new cv::SurfFeatureDetector(),
+                                          new cv::BriskDescriptorExtractor(false, false),
+                                          new cv::BFMatcher(cv::NORM_HAMMING, useCrossCheck)));
 
+    /*
     algorithms.push_back(FeatureAlgorithm("SURF/FREAK/BF",
         new cv::SurfFeatureDetector(),
         new cv::FREAK(),
         new cv::BFMatcher(cv::NORM_HAMMING, useCrossCheck)));
+     
+     algorithms.push_back(FeatureAlgorithm("ORB/FREAK/BF",
+     new cv::OrbFeatureDetector(),
+     new cv::FREAK(),
+     new cv::BFMatcher(cv::NORM_HAMMING, useCrossCheck)));
+
     
     algorithms.push_back(FeatureAlgorithm("ORB3/ORB3/BF",
         new cv::ORB(500, 1.2f, 8,31, 0, 3),
         new cv::ORB(500, 1.2f, 8,31, 0, 3),
         new cv::BFMatcher(cv::NORM_HAMMING2, useCrossCheck)));
-
+    */
+    
+    /*
     algorithms.push_back(FeatureAlgorithm("ORB4/ORB4/BF",
         new cv::ORB(500, 1.2f, 8, 31, 0, 4),
         new cv::ORB(500, 1.2f, 8, 31, 0, 4),
         new cv::BFMatcher(cv::NORM_HAMMING2, useCrossCheck)));
-
+     */
+    
+    /*
     algorithms.push_back(FeatureAlgorithm("FAST/BRIEF/BF",
         new cv::FastFeatureDetector(50),
         new cv::BriefDescriptorExtractor(),
         new cv::BFMatcher(cv::NORM_HAMMING, useCrossCheck)));
+    */
 
-    algorithms.push_back(FeatureAlgorithm("ORB/FREAK/BF",
-        new cv::OrbFeatureDetector(),
-        new cv::FREAK(),
-        new cv::BFMatcher(cv::NORM_HAMMING, useCrossCheck)));
-
+    /*
     algorithms.push_back(FeatureAlgorithm("SURF/SURF/BF",
         new cv::SurfFeatureDetector(),
         new cv::SurfDescriptorExtractor(),
         new cv::BFMatcher(cv::NORM_L2, useCrossCheck)));
-
+     */
+    
     algorithms.push_back(FeatureAlgorithm("SURF/SURF/FLANN",
         new cv::SurfFeatureDetector(),
         new cv::SurfDescriptorExtractor(),
@@ -124,11 +141,23 @@ int main(int argc, const char* argv[])
             std::cout << "done." << std::endl;
         }
 
-        fullStat.printPerformanceStatistics(std::ofstream("Performance.txt"));
-        fullStat.printStatistics(std::ofstream("MatchingRatio.txt"),           StatisticsElementMatchingRatio);
-        fullStat.printStatistics(std::ofstream("PercentOfMatches.txt"),        StatisticsElementPercentOfMatches);
-        fullStat.printStatistics(std::ofstream("PercentOfCorrectMatches.txt"), StatisticsElementPercentOfCorrectMatches);
-        fullStat.printStatistics(std::ofstream("MeanDistance.txt"),            StatisticsElementMeanDistance);
+        std::ofstream performanceStr("Performance.txt");
+        fullStat.printPerformanceStatistics(performanceStr);
+        
+        std::ofstream matchingRatioStr("MatchingRatio.txt");
+        fullStat.printStatistics(matchingRatioStr,  StatisticsElementMatchingRatio);
+
+        std::ofstream percentOfMatchesStr("PercentOfMatches.txt") ;
+        fullStat.printStatistics(percentOfMatchesStr, StatisticsElementPercentOfMatches);
+        
+        std::ofstream percentOfCorrectMatchesStr("PercentOfCorrectMatches.txt");
+        fullStat.printStatistics(percentOfCorrectMatchesStr, StatisticsElementPercentOfCorrectMatches);
+        
+        std::ofstream meanDistanceStr("MeanDistance.txt");
+        fullStat.printStatistics(meanDistanceStr, StatisticsElementMeanDistance);
+        
+        std::ofstream homographyErrorStr("HomographyError.txt");
+        fullStat.printStatistics(homographyErrorStr, StatisticsElementHomographyError);
     }
 
     return 0;

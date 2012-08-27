@@ -13,6 +13,7 @@ typedef enum
     StatisticsElementPercentOfMatches,
     StatisticsElementMeanDistance,
     StatisticsElementMatchingRatio,
+    StatisticsElementHomographyError,
 
 } StatisticElement;
 
@@ -28,6 +29,7 @@ struct FrameMatchingStatistics
     float meanDistance;
     float stdDevDistance;
     float correctMatchesPercent;
+    float homographyError;
 
     double consumedTimeMs;
     bool   isValid;

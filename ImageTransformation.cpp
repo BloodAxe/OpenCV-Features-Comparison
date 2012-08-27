@@ -9,8 +9,13 @@ bool ImageTransformation::canTransformKeypoints() const
 
 void ImageTransformation::transform(float t, const Keypoints& source, Keypoints& result) const
 {
-    
 }
+
+cv::Mat ImageTransformation::getHomography(float t, const cv::Mat& source) const
+{
+    return cv::Mat::eye(3, 3, CV_64FC1);
+}
+
 
 ImageTransformation::~ImageTransformation()
 {
@@ -20,19 +25,19 @@ bool ImageTransformation::findHomography( const Keypoints& source, const Keypoin
 {
     if (input.size() < 8)
         return false;
-
+    
     std::vector<cv::Point2f> srcPoints, dstPoints;
     const int pointsCount = input.size();
-
+    
     for (int i=0; i<pointsCount; i++)
     {
         srcPoints.push_back(source[input[i].trainIdx].pt);
         dstPoints.push_back(result[input[i].queryIdx].pt);
     }
-
+    
     std::vector<unsigned char> status;
-    cv::findHomography(srcPoints, dstPoints, CV_FM_RANSAC, 3, status);
-
+    homography = cv::findHomography(srcPoints, dstPoints, CV_FM_RANSAC, 3, status);
+    
     inliers.clear();
     for (int i=0; i<pointsCount; i++)
     {
@@ -41,7 +46,7 @@ bool ImageTransformation::findHomography( const Keypoints& source, const Keypoin
             inliers.push_back(input[i]);
         }
     }
-
+    
     return true;
 }
 
@@ -71,6 +76,16 @@ void ImageRotationTransformation::transform(float t, const cv::Mat& source, cv::
     cv::warpAffine(source, result, rotationMat, source.size());
 }
 
+cv::Mat ImageRotationTransformation::getHomography(float t, const cv::Mat& source) const
+{
+    cv::Point2f center(source.cols * m_rotationCenterInUnitSpace.x, source.cols * m_rotationCenterInUnitSpace.y);
+    cv::Mat rotationMat = cv::getRotationMatrix2D(center, t, 1);
+    
+    cv::Mat h = cv::Mat::zeros(3,3, CV_64FC1);
+    h(cv::Range(0,2), cv::Range(0,3)) = rotationMat;
+    return h;
+}
+
 
 #pragma mark - ImageScalingTransformation implementation
 
@@ -87,7 +102,7 @@ ImageScalingTransformation::ImageScalingTransformation(float minScale, float max
 
 std::vector<float> ImageScalingTransformation::getX() const
 {
-       return m_args; 
+    return m_args;
 }
 
 void ImageScalingTransformation::transform(float t, const cv::Mat& source, cv::Mat& result)const

@@ -22,6 +22,9 @@ public:
     virtual ~ImageTransformation();
     
     static bool findHomography( const Keypoints& source, const Keypoints& result, const Matches& input, Matches& inliers, cv::Mat& homography);
+    
+    virtual cv::Mat getHomography(float t, const cv::Mat& source) const;
+    
 protected:
 
     ImageTransformation(const std::string& transformationName)
@@ -40,6 +43,8 @@ public:
     
 	virtual void transform(float t, const cv::Mat& source, cv::Mat& result)const ;
     
+    virtual cv::Mat getHomography(float t, const cv::Mat& source) const;
+
 private:
     float m_startAngleInDeg;
     float m_endAngleInDeg;
