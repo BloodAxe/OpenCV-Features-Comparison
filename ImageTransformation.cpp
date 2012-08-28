@@ -21,6 +21,42 @@ ImageTransformation::~ImageTransformation()
 {
 }
 
+bool ImageTransformation::findHomographySubPix( const Keypoints& source, const cv::Mat& sourceImg, const Keypoints& result, const cv::Mat& resultImg, const Matches& input, Matches& inliers, cv::Mat& homography)
+{
+    if (input.size() < 8)
+        return false;
+
+    std::vector<cv::Point2f> srcPoints, dstPoints;
+    const int pointsCount = input.size();
+
+    for (int i=0; i<pointsCount; i++)
+    {
+        srcPoints.push_back(source[input[i].trainIdx].pt);
+        dstPoints.push_back(result[input[i].queryIdx].pt);
+    }
+
+    cv::Size winSize(5,5);
+    cv::Size zeroZone(-1,-1);
+    cv::TermCriteria tc(cv::TermCriteria::EPS | cv::TermCriteria::COUNT, 30, 0.01);
+
+    cv::cornerSubPix(sourceImg, srcPoints, winSize, zeroZone, tc);
+    cv::cornerSubPix(resultImg, dstPoints, winSize, zeroZone, tc);
+
+    std::vector<unsigned char> status;
+    homography = cv::findHomography(srcPoints, dstPoints, CV_FM_RANSAC, 3, status);
+
+    inliers.clear();
+    for (int i=0; i<pointsCount; i++)
+    {
+        if (status[i])
+        {
+            inliers.push_back(input[i]);
+        }
+    }
+
+    return true;
+}
+
 bool ImageTransformation::findHomography( const Keypoints& source, const Keypoints& result, const Matches& input, Matches& inliers, cv::Mat& homography)
 {
     if (input.size() < 8)
@@ -34,7 +70,7 @@ bool ImageTransformation::findHomography( const Keypoints& source, const Keypoin
         srcPoints.push_back(source[input[i].trainIdx].pt);
         dstPoints.push_back(result[input[i].queryIdx].pt);
     }
-    
+
     std::vector<unsigned char> status;
     homography = cv::findHomography(srcPoints, dstPoints, CV_FM_RANSAC, 3, status);
     
@@ -73,7 +109,7 @@ void ImageRotationTransformation::transform(float t, const cv::Mat& source, cv::
 {
     cv::Point2f center(source.cols * m_rotationCenterInUnitSpace.x, source.cols * m_rotationCenterInUnitSpace.y);
     cv::Mat rotationMat = cv::getRotationMatrix2D(center, t, 1);
-    cv::warpAffine(source, result, rotationMat, source.size());
+    cv::warpAffine(source, result, rotationMat, source.size(), cv::INTER_CUBIC);
 }
 
 cv::Mat ImageRotationTransformation::getHomography(float t, const cv::Mat& source) const
@@ -81,8 +117,8 @@ cv::Mat ImageRotationTransformation::getHomography(float t, const cv::Mat& sourc
     cv::Point2f center(source.cols * m_rotationCenterInUnitSpace.x, source.cols * m_rotationCenterInUnitSpace.y);
     cv::Mat rotationMat = cv::getRotationMatrix2D(center, t, 1);
     
-    cv::Mat h = cv::Mat::zeros(3,3, CV_64FC1);
-    h(cv::Range(0,2), cv::Range(0,3)) = rotationMat;
+    cv::Mat h = cv::Mat::eye(3,3, CV_64FC1);
+    rotationMat.copyTo(h(cv::Range(0,2), cv::Range(0,3)));
     return h;
 }
 

@@ -112,7 +112,8 @@ bool performEstimation
         Matches correctMatches;
         cv::Mat homography;
         bool homographyFound = ImageTransformation::findHomography(sourceKp, resKpReal, matches, correctMatches, homography);
-        
+        //bool homographyFound = ImageTransformation::findHomographySubPix(sourceKp, gray, resKpReal, transformedImage, matches, correctMatches, homography);
+
         // Some simple stat:
         s.isValid        = homographyFound;
         s.totalKeypoints = resKpReal.size();
@@ -127,7 +128,25 @@ bool performEstimation
         
         if (homographyFound)
         {
-            s.homographyError = cv::norm(expectedHomography * homography.inv(), cv::NORM_INF);
+            //std::cout << "Expected:" << expectedHomography << std::endl;
+            //std::cout << "Actual:"   << homography << std::endl;
+            cv::Mat r = expectedHomography * homography.inv();
+
+            float error = cv::norm(cv::Mat::eye(3,3, CV_64FC1) - r, cv::NORM_INF);
+            s.homographyError = std::min(error, 1.0f);
+
+            if (error > 1)
+            {
+                std::cout << "H expected:" << expectedHomography << std::endl;
+                std::cout << "H actual:"   << homography << std::endl;
+                std::cout << "H error:"    << error << std::endl;
+
+                cv::Mat matchesImg;
+                cv::drawMatches(transformedImage, resKpReal, gray, sourceKp, correctMatches, matchesImg);
+                cv::imshow("Matches", matchesImg);
+                cv::waitKey(-1);
+            }
+            //s.isValid = s.homographyError <= 1.0;
         }
     }
     

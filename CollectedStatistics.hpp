@@ -14,6 +14,7 @@ typedef enum
     StatisticsElementMeanDistance,
     StatisticsElementMatchingRatio,
     StatisticsElementHomographyError,
+    StatisticsElementPatternLocalization,
 
 } StatisticElement;
 

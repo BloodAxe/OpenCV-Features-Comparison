@@ -23,69 +23,55 @@ int main(int argc, const char* argv[])
     bool useCrossCheck = true;
 
     // Initialize list of algorithm tuples:
-    
-    /*
-    algorithms.push_back(FeatureAlgorithm("BRISK/BRISK/BF",
+
+    algorithms.push_back(FeatureAlgorithm("SURF BF",
+        new cv::SurfFeatureDetector(),
+        new cv::SurfDescriptorExtractor(),
+        new cv::BFMatcher(cv::NORM_L2, useCrossCheck)));
+
+    algorithms.push_back(FeatureAlgorithm("BRISK",
         new cv::BriskFeatureDetector(60,4),
         new cv::BriskDescriptorExtractor(),
         new cv::BFMatcher(cv::NORM_HAMMING, useCrossCheck)));
 
-    algorithms.push_back(FeatureAlgorithm("ORB/ORB/BF",
+    algorithms.push_back(FeatureAlgorithm("ORB",
         new cv::ORB(),
         new cv::ORB(),
         new cv::BFMatcher(cv::NORM_HAMMING, useCrossCheck)));
-    */
 
     algorithms.push_back(FeatureAlgorithm("SURF/BRISK(1)/BF",
         new cv::SurfFeatureDetector(),
         new cv::BriskDescriptorExtractor(),
         new cv::BFMatcher(cv::NORM_HAMMING, useCrossCheck)));
-    
-    algorithms.push_back(FeatureAlgorithm("SURF/BRISK(2)/BF",
-                                          new cv::SurfFeatureDetector(),
-                                          new cv::BriskDescriptorExtractor(false, false),
-                                          new cv::BFMatcher(cv::NORM_HAMMING, useCrossCheck)));
 
-    /*
-    algorithms.push_back(FeatureAlgorithm("SURF/FREAK/BF",
+    algorithms.push_back(FeatureAlgorithm("SURF/BRISK(2)/BF",
+        new cv::SurfFeatureDetector(),
+        new cv::BriskDescriptorExtractor(false, false),
+        new cv::BFMatcher(cv::NORM_HAMMING, useCrossCheck)));
+
+    algorithms.push_back(FeatureAlgorithm("ORB+FREAK(normalized)",
+        new cv::OrbFeatureDetector(),
+        new cv::FREAK(),
+        new cv::BFMatcher(cv::NORM_HAMMING, useCrossCheck)));
+
+    algorithms.push_back(FeatureAlgorithm("FREAK(normalized)",
         new cv::SurfFeatureDetector(),
         new cv::FREAK(),
         new cv::BFMatcher(cv::NORM_HAMMING, useCrossCheck)));
-     
-     algorithms.push_back(FeatureAlgorithm("ORB/FREAK/BF",
-     new cv::OrbFeatureDetector(),
-     new cv::FREAK(),
-     new cv::BFMatcher(cv::NORM_HAMMING, useCrossCheck)));
 
-    
-    algorithms.push_back(FeatureAlgorithm("ORB3/ORB3/BF",
-        new cv::ORB(500, 1.2f, 8,31, 0, 3),
-        new cv::ORB(500, 1.2f, 8,31, 0, 3),
-        new cv::BFMatcher(cv::NORM_HAMMING2, useCrossCheck)));
-    */
-    
-    /*
-    algorithms.push_back(FeatureAlgorithm("ORB4/ORB4/BF",
-        new cv::ORB(500, 1.2f, 8, 31, 0, 4),
-        new cv::ORB(500, 1.2f, 8, 31, 0, 4),
-        new cv::BFMatcher(cv::NORM_HAMMING2, useCrossCheck)));
-     */
-    
-    /*
-    algorithms.push_back(FeatureAlgorithm("FAST/BRIEF/BF",
+    algorithms.push_back(FeatureAlgorithm("FREAK",
+        new cv::SurfFeatureDetector(),
+        new cv::FREAK(false,false),
+        new cv::BFMatcher(cv::NORM_HAMMING, useCrossCheck)));
+
+    algorithms.push_back(FeatureAlgorithm("FAST+BRIEF",
         new cv::FastFeatureDetector(50),
         new cv::BriefDescriptorExtractor(),
         new cv::BFMatcher(cv::NORM_HAMMING, useCrossCheck)));
-    */
 
-    /*
-    algorithms.push_back(FeatureAlgorithm("SURF/SURF/BF",
-        new cv::SurfFeatureDetector(),
-        new cv::SurfDescriptorExtractor(),
-        new cv::BFMatcher(cv::NORM_L2, useCrossCheck)));
-     */
-    
-    algorithms.push_back(FeatureAlgorithm("SURF/SURF/FLANN",
+
+
+    algorithms.push_back(FeatureAlgorithm("SURF FLANN",
         new cv::SurfFeatureDetector(),
         new cv::SurfDescriptorExtractor(),
         new cv::FlannBasedMatcher()));
@@ -102,10 +88,10 @@ int main(int argc, const char* argv[])
     }
     else
     {
-        transformations.push_back(new GaussianBlurTransform(9));
-        transformations.push_back(new BrightnessImageTransform(-127, +127, 10));
         transformations.push_back(new ImageRotationTransformation(0, 360, 10, cv::Point2f(0.5f,0.5f)));
         transformations.push_back(new ImageScalingTransformation(0.25f, 2.0f, 0.1f));
+        transformations.push_back(new BrightnessImageTransform(-127, +127, 10));
+        transformations.push_back(new GaussianBlurTransform(9));
     }
 
     if (argc < 2)
@@ -143,21 +129,25 @@ int main(int argc, const char* argv[])
 
         std::ofstream performanceStr("Performance.txt");
         fullStat.printPerformanceStatistics(performanceStr);
-        
+
         std::ofstream matchingRatioStr("MatchingRatio.txt");
         fullStat.printStatistics(matchingRatioStr,  StatisticsElementMatchingRatio);
 
         std::ofstream percentOfMatchesStr("PercentOfMatches.txt") ;
         fullStat.printStatistics(percentOfMatchesStr, StatisticsElementPercentOfMatches);
-        
+
         std::ofstream percentOfCorrectMatchesStr("PercentOfCorrectMatches.txt");
         fullStat.printStatistics(percentOfCorrectMatchesStr, StatisticsElementPercentOfCorrectMatches);
-        
+
         std::ofstream meanDistanceStr("MeanDistance.txt");
         fullStat.printStatistics(meanDistanceStr, StatisticsElementMeanDistance);
-        
+
         std::ofstream homographyErrorStr("HomographyError.txt");
         fullStat.printStatistics(homographyErrorStr, StatisticsElementHomographyError);
+
+        std::ofstream patternLocalizationStr("PatternLocalization.txt");
+        fullStat.printStatistics(patternLocalizationStr, StatisticsElementPatternLocalization);
+        
     }
 
     return 0;

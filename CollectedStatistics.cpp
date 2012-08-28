@@ -65,7 +65,12 @@ std::ostream& FrameMatchingStatistics::writeElement(std::ostream& str, Statistic
                 
             case StatisticsElementHomographyError:
                 str << homographyError << tab;
-                
+                break;
+
+            case StatisticsElementPatternLocalization:
+                str << (correctMatchesPercent * percentOfMatches * (1.0 - homographyError))  << tab;
+                break;
+
             default:
                 str << null << tab;
                 break;
