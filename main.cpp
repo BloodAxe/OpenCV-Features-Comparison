@@ -24,11 +24,13 @@ int main(int argc, const char* argv[])
 
     // Initialize list of algorithm tuples:
 
+    /*
     algorithms.push_back(FeatureAlgorithm("SURF BF",
         new cv::SurfFeatureDetector(),
         new cv::SurfDescriptorExtractor(),
         new cv::BFMatcher(cv::NORM_L2, useCrossCheck)));
-
+     */
+    
     algorithms.push_back(FeatureAlgorithm("BRISK",
         new cv::BriskFeatureDetector(60,4),
         new cv::BriskDescriptorExtractor(),
@@ -49,6 +51,7 @@ int main(int argc, const char* argv[])
         new cv::BriskDescriptorExtractor(false, false),
         new cv::BFMatcher(cv::NORM_HAMMING, useCrossCheck)));
 
+    /*
     algorithms.push_back(FeatureAlgorithm("ORB+FREAK(normalized)",
         new cv::OrbFeatureDetector(),
         new cv::FREAK(),
@@ -88,10 +91,18 @@ int main(int argc, const char* argv[])
     }
     else
     {
+        transformations.push_back(new CombinedTransform(new PerspectiveTransform(50),
+                                                        new CombinedTransform(new ImageRotationTransformation(0, 360, 10, cv::Point2f(0.5f,0.5f)),
+                                                                              new ImageScalingTransformation(0.25f, 2.0f, 0.1f),
+                                                                              CombinedTransform::Interpolate),
+                                                        CombinedTransform::Interpolate));
+    
+        /*
         transformations.push_back(new ImageRotationTransformation(0, 360, 10, cv::Point2f(0.5f,0.5f)));
         transformations.push_back(new ImageScalingTransformation(0.25f, 2.0f, 0.1f));
         transformations.push_back(new BrightnessImageTransform(-127, +127, 10));
         transformations.push_back(new GaussianBlurTransform(9));
+         */
     }
 
     if (argc < 2)

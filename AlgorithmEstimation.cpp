@@ -81,6 +81,8 @@ bool performEstimation
         transformation.transform(arg, gray, transformedImage);
         cv::Mat expectedHomography = transformation.getHomography(arg, gray);
         
+        //cv::imshow("transformedImage",transformedImage);
+        //cv::waitKey(-1);
         
         int64 start = cv::getTickCount();
         
@@ -128,21 +130,28 @@ bool performEstimation
         
         if (homographyFound)
         {
-            //std::cout << "Expected:" << expectedHomography << std::endl;
-            //std::cout << "Actual:"   << homography << std::endl;
             cv::Mat r = expectedHomography * homography.inv();
-
             float error = cv::norm(cv::Mat::eye(3,3, CV_64FC1) - r, cv::NORM_INF);
             s.homographyError = std::min(error, 1.0f);
 
-            if (error > 1)
+            if (0 && error > 1)
             {
                 std::cout << "H expected:" << expectedHomography << std::endl;
                 std::cout << "H actual:"   << homography << std::endl;
                 std::cout << "H error:"    << error << std::endl;
-
+                
                 cv::Mat matchesImg;
-                cv::drawMatches(transformedImage, resKpReal, gray, sourceKp, correctMatches, matchesImg);
+                cv::drawMatches(transformedImage,
+                                resKpReal,
+                                gray,
+                                sourceKp,
+                                correctMatches,
+                                matchesImg,
+                                cv::Scalar::all(-1),
+                                cv::Scalar::all(-1),
+                                std::vector<char>(),
+                                cv::DrawMatchesFlags::NOT_DRAW_SINGLE_POINTS);
+                
                 cv::imshow("Matches", matchesImg);
                 cv::waitKey(-1);
             }
