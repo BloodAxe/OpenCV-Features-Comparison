@@ -14,23 +14,13 @@ const bool USE_VERBOSE_TRANSFORMATIONS = false;
 
 int main(int argc, const char* argv[])
 {
-    // Print OpenCV build info:
-    //std::cout << cv::getBuildInformation() << std::endl;
-    //return 0;
     std::vector<FeatureAlgorithm>              algorithms;
     std::vector<cv::Ptr<ImageTransformation> > transformations;
 
     bool useCrossCheck = true;
 
     // Initialize list of algorithm tuples:
-
-    /*
-    algorithms.push_back(FeatureAlgorithm("SURF BF",
-        new cv::SurfFeatureDetector(),
-        new cv::SurfDescriptorExtractor(),
-        new cv::BFMatcher(cv::NORM_L2, useCrossCheck)));
-     */
-    
+       
     algorithms.push_back(FeatureAlgorithm("BRISK",
         new cv::BriskFeatureDetector(60,4),
         new cv::BriskDescriptorExtractor(),
@@ -40,17 +30,26 @@ int main(int argc, const char* argv[])
         new cv::ORB(),
         new cv::ORB(),
         new cv::BFMatcher(cv::NORM_HAMMING, useCrossCheck)));
+    
+    algorithms.push_back(FeatureAlgorithm("FREAK",
+        new cv::SurfFeatureDetector(),
+        new cv::FREAK(),
+        new cv::BFMatcher(cv::NORM_HAMMING, useCrossCheck)));
 
-    algorithms.push_back(FeatureAlgorithm("SURF/BRISK(1)/BF",
+    algorithms.push_back(FeatureAlgorithm("SURF+BRISK",
         new cv::SurfFeatureDetector(),
         new cv::BriskDescriptorExtractor(),
         new cv::BFMatcher(cv::NORM_HAMMING, useCrossCheck)));
 
-    algorithms.push_back(FeatureAlgorithm("SURF/BRISK(2)/BF",
+    algorithms.push_back(FeatureAlgorithm("SURF BF",
         new cv::SurfFeatureDetector(),
-        new cv::BriskDescriptorExtractor(false, false),
-        new cv::BFMatcher(cv::NORM_HAMMING, useCrossCheck)));
+        new cv::SurfDescriptorExtractor(),
+        new cv::BFMatcher(cv::NORM_L2, useCrossCheck)));
 
+    algorithms.push_back(FeatureAlgorithm("SURF FLANN",
+        new cv::SurfFeatureDetector(),
+        new cv::SurfDescriptorExtractor(),
+        new cv::FlannBasedMatcher()));
     /*
     algorithms.push_back(FeatureAlgorithm("ORB+FREAK(normalized)",
         new cv::OrbFeatureDetector(),
@@ -62,10 +61,6 @@ int main(int argc, const char* argv[])
         new cv::FREAK(),
         new cv::BFMatcher(cv::NORM_HAMMING, useCrossCheck)));
 
-    algorithms.push_back(FeatureAlgorithm("FREAK",
-        new cv::SurfFeatureDetector(),
-        new cv::FREAK(false,false),
-        new cv::BFMatcher(cv::NORM_HAMMING, useCrossCheck)));
 
     algorithms.push_back(FeatureAlgorithm("FAST+BRIEF",
         new cv::FastFeatureDetector(50),
@@ -74,10 +69,7 @@ int main(int argc, const char* argv[])
 
 
 
-    algorithms.push_back(FeatureAlgorithm("SURF FLANN",
-        new cv::SurfFeatureDetector(),
-        new cv::SurfDescriptorExtractor(),
-        new cv::FlannBasedMatcher()));
+    
 
     /**/
 
@@ -91,18 +83,17 @@ int main(int argc, const char* argv[])
     }
     else
     {
-        transformations.push_back(new CombinedTransform(new PerspectiveTransform(50),
-                                                        new CombinedTransform(new ImageRotationTransformation(0, 360, 10, cv::Point2f(0.5f,0.5f)),
-                                                                              new ImageScalingTransformation(0.25f, 2.0f, 0.1f),
-                                                                              CombinedTransform::Interpolate),
-                                                        CombinedTransform::Interpolate));
+        //transformations.push_back(new CombinedTransform(new PerspectiveTransform(250),
+        //                                                new CombinedTransform(new ImageRotationTransformation(0, 360, 1, cv::Point2f(0.5f,0.5f)),
+        //                                                                      new ImageScalingTransformation(0.4f, 2.0f, 0.01f),
+        //                                                                      CombinedTransform::Extrapolate),
+        //                                                CombinedTransform::Extrapolate));
     
-        /*
+        
+        transformations.push_back(new GaussianBlurTransform(9));
         transformations.push_back(new ImageRotationTransformation(0, 360, 10, cv::Point2f(0.5f,0.5f)));
         transformations.push_back(new ImageScalingTransformation(0.25f, 2.0f, 0.1f));
-        transformations.push_back(new BrightnessImageTransform(-127, +127, 10));
         transformations.push_back(new GaussianBlurTransform(9));
-         */
     }
 
     if (argc < 2)
@@ -141,24 +132,26 @@ int main(int argc, const char* argv[])
         std::ofstream performanceStr("Performance.txt");
         fullStat.printPerformanceStatistics(performanceStr);
 
-        std::ofstream matchingRatioStr("MatchingRatio.txt");
-        fullStat.printStatistics(matchingRatioStr,  StatisticsElementMatchingRatio);
+        //std::ofstream matchingRatioStr("MatchingRatio.txt");
+        //fullStat.printStatistics(matchingRatioStr,  StatisticsElementMatchingRatio);
 
-        std::ofstream percentOfMatchesStr("PercentOfMatches.txt") ;
-        fullStat.printStatistics(percentOfMatchesStr, StatisticsElementPercentOfMatches);
+        //std::ofstream percentOfMatchesStr("PercentOfMatches.txt") ;
+        //fullStat.printStatistics(percentOfMatchesStr, StatisticsElementPercentOfMatches);
 
         std::ofstream percentOfCorrectMatchesStr("PercentOfCorrectMatches.txt");
         fullStat.printStatistics(percentOfCorrectMatchesStr, StatisticsElementPercentOfCorrectMatches);
 
-        std::ofstream meanDistanceStr("MeanDistance.txt");
-        fullStat.printStatistics(meanDistanceStr, StatisticsElementMeanDistance);
+        //std::ofstream meanDistanceStr("MeanDistance.txt");
+        //fullStat.printStatistics(meanDistanceStr, StatisticsElementMeanDistance);
 
         std::ofstream homographyErrorStr("HomographyError.txt");
         fullStat.printStatistics(homographyErrorStr, StatisticsElementHomographyError);
 
-        std::ofstream patternLocalizationStr("PatternLocalization.txt");
-        fullStat.printStatistics(patternLocalizationStr, StatisticsElementPatternLocalization);
+        //std::ofstream patternLocalizationStr("PatternLocalization.txt");
+        //fullStat.printStatistics(patternLocalizationStr, StatisticsElementPatternLocalization);
         
+        std::ofstream reprojectionErrorStr("ReprojectionError.txt");
+        fullStat.printStatistics(reprojectionErrorStr, StatisticsElementAverageReprojectionError);
     }
 
     return 0;

@@ -22,9 +22,8 @@ public:
     virtual cv::Mat getHomography(float t, const cv::Mat& source) const;
 
     virtual ~ImageTransformation();
-    
+
     static bool findHomography( const Keypoints& source, const Keypoints& result, const Matches& input, Matches& inliers, cv::Mat& homography);
-    static bool findHomographySubPix( const Keypoints& source, const cv::Mat& sourceImg, const Keypoints& result, const cv::Mat& resultImg, const Matches& input, Matches& inliers, cv::Mat& homography);
 
     
 protected:

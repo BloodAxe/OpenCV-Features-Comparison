@@ -5,6 +5,7 @@
 #include <vector>
 #include <map>
 #include <string>
+#include <opencv2/opencv.hpp>
 
 typedef enum 
 {
@@ -15,6 +16,7 @@ typedef enum
     StatisticsElementMatchingRatio,
     StatisticsElementHomographyError,
     StatisticsElementPatternLocalization,
+    StatisticsElementAverageReprojectionError
 
 } StatisticElement;
 
@@ -33,6 +35,7 @@ struct FrameMatchingStatistics
     float homographyError;
 
     double consumedTimeMs;
+    cv::Scalar reprojectionError;
     bool   isValid;
 
     std::ostream& writeElement(std::ostream& str, StatisticElement elem) const;

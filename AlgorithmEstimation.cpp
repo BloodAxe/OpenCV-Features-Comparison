@@ -37,6 +37,9 @@ void ratioTest(const std::vector<Matches>& knMatches, float maxRatio, Matches& g
     }
 }
 
+cv::Scalar computeReprojectionError(const Keypoints& source, const Keypoints& query, const Matches& matches, const cv::Mat& homography);
+
+
 bool performEstimation
 (
  const FeatureAlgorithm& alg,
@@ -126,19 +129,24 @@ bool performEstimation
         s.correctMatchesPercent = (float) correctMatches.size() / (float)matches.size();
         
         // Compute matching statistics
-        computeMatchesDistanceStatistics(correctMatches, s.meanDistance, s.stdDevDistance);
-        
         if (homographyFound)
         {
             cv::Mat r = expectedHomography * homography.inv();
             float error = cv::norm(cv::Mat::eye(3,3, CV_64FC1) - r, cv::NORM_INF);
+
+            computeMatchesDistanceStatistics(correctMatches, s.meanDistance, s.stdDevDistance);
+            s.reprojectionError = computeReprojectionError(sourceKp, resKpReal, correctMatches, homography);
             s.homographyError = std::min(error, 1.0f);
 
-            if (0 && error > 1)
+            if (0 && error >= 1)
             {
                 std::cout << "H expected:" << expectedHomography << std::endl;
                 std::cout << "H actual:"   << homography << std::endl;
                 std::cout << "H error:"    << error << std::endl;
+                std::cout << "R error:"    << s.reprojectionError(0) << ";" 
+                                           << s.reprojectionError(1) << ";" 
+                                           << s.reprojectionError(2) << ";" 
+                                           << s.reprojectionError(3) << std::endl;
                 
                 cv::Mat matchesImg;
                 cv::drawMatches(transformedImage,
@@ -155,10 +163,44 @@ bool performEstimation
                 cv::imshow("Matches", matchesImg);
                 cv::waitKey(-1);
             }
-            //s.isValid = s.homographyError <= 1.0;
         }
     }
     
     return true;
 }
 
+cv::Scalar computeReprojectionError(const Keypoints& source, const Keypoints& query, const Matches& matches, const cv::Mat& homography)
+{
+    assert(matches.size() > 0);
+
+    const int pointsCount = matches.size();
+    std::vector<cv::Point2f> srcPoints, dstPoints;
+    std::vector<float> distances;
+
+    for (int i = 0; i < pointsCount; i++)
+    {
+        srcPoints.push_back(source[matches[i].trainIdx].pt);
+        dstPoints.push_back(query[matches[i].queryIdx].pt);
+    }
+
+    cv::perspectiveTransform(dstPoints, dstPoints, homography.inv());
+    for (int i = 0; i < pointsCount; i++)
+    {
+        const cv::Point2f& src = srcPoints[i];
+        const cv::Point2f& dst = dstPoints[i];
+
+        cv::Point2f v = src - dst;
+        distances.push_back(sqrtf(v.dot(v)));
+    }
+
+    
+    cv::Scalar mean, dev;
+    cv::meanStdDev(distances, mean, dev);
+
+    cv::Scalar result;
+    result(0) = mean(0);
+    result(1) = dev(0);
+    result(2) = *std::max_element(distances.begin(), distances.end());
+    result(3) = *std::min_element(distances.begin(), distances.end());
+    return result;
+}

@@ -9,6 +9,7 @@ bool ImageTransformation::canTransformKeypoints() const
 
 void ImageTransformation::transform(float t, const Keypoints& source, Keypoints& result) const
 {
+
 }
 
 cv::Mat ImageTransformation::getHomography(float t, const cv::Mat& source) const
@@ -21,64 +22,31 @@ ImageTransformation::~ImageTransformation()
 {
 }
 
-bool ImageTransformation::findHomographySubPix( const Keypoints& source, const cv::Mat& sourceImg, const Keypoints& result, const cv::Mat& resultImg, const Matches& input, Matches& inliers, cv::Mat& homography)
-{
-    if (input.size() < 8)
-        return false;
-
-    std::vector<cv::Point2f> srcPoints, dstPoints;
-    const int pointsCount = input.size();
-
-    for (int i=0; i<pointsCount; i++)
-    {
-        srcPoints.push_back(source[input[i].trainIdx].pt);
-        dstPoints.push_back(result[input[i].queryIdx].pt);
-    }
-
-    cv::Size winSize(5,5);
-    cv::Size zeroZone(-1,-1);
-    cv::TermCriteria tc(cv::TermCriteria::EPS | cv::TermCriteria::COUNT, 30, 0.01);
-
-    cv::cornerSubPix(sourceImg, srcPoints, winSize, zeroZone, tc);
-    cv::cornerSubPix(resultImg, dstPoints, winSize, zeroZone, tc);
-
-    std::vector<unsigned char> status;
-    homography = cv::findHomography(srcPoints, dstPoints, CV_FM_RANSAC, 3, status);
-
-    inliers.clear();
-    for (int i=0; i<pointsCount; i++)
-    {
-        if (status[i])
-        {
-            inliers.push_back(input[i]);
-        }
-    }
-
-    return true;
-}
-
 bool ImageTransformation::findHomography( const Keypoints& source, const Keypoints& result, const Matches& input, Matches& inliers, cv::Mat& homography)
 {
     if (input.size() < 4)
         return false;
     
-    std::vector<cv::Point2f> srcPoints, dstPoints;
     const int pointsCount = input.size();
-    
+    const float reprojectionThreshold = 2;
+
+    //Prepare src and dst points
+    std::vector<cv::Point2f> srcPoints, dstPoints;    
     for (int i = 0; i < pointsCount; i++)
     {
         srcPoints.push_back(source[input[i].trainIdx].pt);
         dstPoints.push_back(result[input[i].queryIdx].pt);
     }
-    
-    float reprojectionThreshold = 3;
-    
+      
+    // Find homography using RANSAC algorithm
     std::vector<unsigned char> status;
     homography = cv::findHomography(srcPoints, dstPoints, CV_FM_RANSAC, reprojectionThreshold, status);
     
+    // Warp dstPoints to srcPoints domain using inverted homography transformation
     std::vector<cv::Point2f> srcReprojected;
     cv::perspectiveTransform(dstPoints, srcReprojected, homography.inv());
-    
+
+    // Pass only matches with low reprojection error (less than reprojectionThreshold value in pixels)
     inliers.clear();
     for (int i = 0; i < pointsCount; i++)
     {
@@ -87,28 +55,46 @@ bool ImageTransformation::findHomography( const Keypoints& source, const Keypoin
         cv::Point2f v = actual - expect;
         float distanceSquared = v.dot(v);
         
-        if (status[i] && distanceSquared <= reprojectionThreshold * reprojectionThreshold)
+        if (/*status[i] && */distanceSquared <= reprojectionThreshold * reprojectionThreshold)
         {
             inliers.push_back(input[i]);
         }
     }
     
+    // Test for bad case
     if (inliers.size() < 4)
         return false;
     
-    srcPoints.clear();
-    dstPoints.clear();
+    // Now use only good points to find refined homography:
+    std::vector<cv::Point2f> refinedSrc, refinedDst;
     for (int i = 0; i < inliers.size(); i++)
     {
-        srcPoints.push_back(source[inliers[i].trainIdx].pt);
-        dstPoints.push_back(result[inliers[i].queryIdx].pt);
+        refinedSrc.push_back(source[inliers[i].trainIdx].pt);
+        refinedDst.push_back(result[inliers[i].queryIdx].pt);
     }
     
-    cv::Mat homography2 = cv::findHomography(srcPoints, dstPoints, 0, reprojectionThreshold);
-    //std::cout << "Raw H:" << homography << std::endl;
-    //std::cout << "Ref H:" << homography2 << std::endl;
+    // Use least squares method to find precise homography
+    cv::Mat homography2 = cv::findHomography(refinedSrc, refinedDst, 0, reprojectionThreshold);
+
+    // Reproject again:
+    cv::perspectiveTransform(dstPoints, srcReprojected, homography2.inv());
+    inliers.clear();
+
+    for (int i = 0; i < pointsCount; i++)
+    {
+        cv::Point2f actual = srcPoints[i];
+        cv::Point2f expect = srcReprojected[i];
+        cv::Point2f v = actual - expect;
+        float distanceSquared = v.dot(v);
+
+        if (distanceSquared <= reprojectionThreshold * reprojectionThreshold)
+        {
+            inliers.push_back(input[i]);
+        }
+    }
+ 
     homography = homography2;
-    return true;
+    return inliers.size() >= 4;
 }
 
 #pragma mark - ImageRotationTransformation implementation
