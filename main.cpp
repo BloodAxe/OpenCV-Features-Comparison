@@ -91,18 +91,19 @@ int main(int argc, const char* argv[])
     }
     else
     {
+        /*
         transformations.push_back(new CombinedTransform(new PerspectiveTransform(50),
                                                         new CombinedTransform(new ImageRotationTransformation(0, 360, 10, cv::Point2f(0.5f,0.5f)),
                                                                               new ImageScalingTransformation(0.25f, 2.0f, 0.1f),
                                                                               CombinedTransform::Interpolate),
                                                         CombinedTransform::Interpolate));
     
-        /*
+        */
         transformations.push_back(new ImageRotationTransformation(0, 360, 10, cv::Point2f(0.5f,0.5f)));
         transformations.push_back(new ImageScalingTransformation(0.25f, 2.0f, 0.1f));
         transformations.push_back(new BrightnessImageTransform(-127, +127, 10));
         transformations.push_back(new GaussianBlurTransform(9));
-         */
+        
     }
 
     if (argc < 2)
@@ -138,6 +139,9 @@ int main(int argc, const char* argv[])
             std::cout << "done." << std::endl;
         }
 
+        fullStat.printAverage(std::cout, StatisticsElementHomographyError);
+        
+        /*
         std::ofstream performanceStr("Performance.txt");
         fullStat.printPerformanceStatistics(performanceStr);
 
@@ -158,6 +162,7 @@ int main(int argc, const char* argv[])
 
         std::ofstream patternLocalizationStr("PatternLocalization.txt");
         fullStat.printStatistics(patternLocalizationStr, StatisticsElementPatternLocalization);
+         */
         
     }
 

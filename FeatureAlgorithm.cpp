@@ -8,7 +8,9 @@ FeatureAlgorithm::FeatureAlgorithm(std::string n, cv::Ptr<cv::FeatureDetector> d
 , extractor(e)
 , matcher(m)
 {
-    
+    assert(d);
+    assert(e);
+    assert(m);
 }
 
 bool FeatureAlgorithm::extractFeatures(const cv::Mat& image, Keypoints& kp, Descriptors& desc) const
@@ -29,13 +31,11 @@ bool FeatureAlgorithm::extractFeatures(const cv::Mat& image, Keypoints& kp, Desc
 
 void FeatureAlgorithm::matchFeatures(const Descriptors& train, const Descriptors& query, Matches& matches) const
 {
-    assert(matcher);
     matcher->match(query, train, matches);
 }
 
 void FeatureAlgorithm::matchFeatures(const Descriptors& train, const Descriptors& query, int k, std::vector<Matches>& matches) const
 {
-    assert(matcher);
     assert(knMatchSupported);
     matcher->knnMatch(query, train, matches, k);
 }

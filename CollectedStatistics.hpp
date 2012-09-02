@@ -35,10 +35,17 @@ struct FrameMatchingStatistics
     double consumedTimeMs;
     bool   isValid;
 
+    inline float matchingRatio()       const { return correctMatchesPercent * percentOfMatches * 100; };
+    inline float patternLocalization() const { return correctMatchesPercent * percentOfMatches * (1.0 - homographyError); }
+    
     std::ostream& writeElement(std::ostream& str, StatisticElement elem) const;
+    bool tryGetValue(StatisticElement element, float& value) const;
 };
 
 typedef std::vector<FrameMatchingStatistics> SingleRunStatistics;
+
+float average(const SingleRunStatistics& statistics, StatisticElement element);
+float maximum(const SingleRunStatistics& statistics, StatisticElement element);
 
 struct Line
 {
@@ -67,6 +74,7 @@ public:
 
     std::ostream& printPerformanceStatistics(std::ostream& str) const;
     std::ostream& printStatistics(std::ostream& str, StatisticElement elem) const;
+    std::ostream& printAverage(std::ostream& str, StatisticElement elem) const;
 
 private:
     typedef std::pair<std::string, std::string> Key;
