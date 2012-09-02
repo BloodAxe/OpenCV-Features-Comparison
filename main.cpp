@@ -83,17 +83,10 @@ int main(int argc, const char* argv[])
     }
     else
     {
-        //transformations.push_back(new CombinedTransform(new PerspectiveTransform(250),
-        //                                                new CombinedTransform(new ImageRotationTransformation(0, 360, 1, cv::Point2f(0.5f,0.5f)),
-        //                                                                      new ImageScalingTransformation(0.4f, 2.0f, 0.01f),
-        //                                                                      CombinedTransform::Extrapolate),
-        //                                                CombinedTransform::Extrapolate));
-    
-        
         transformations.push_back(new GaussianBlurTransform(9));
         transformations.push_back(new ImageRotationTransformation(0, 360, 10, cv::Point2f(0.5f,0.5f)));
         transformations.push_back(new ImageScalingTransformation(0.25f, 2.0f, 0.1f));
-        transformations.push_back(new GaussianBlurTransform(9));
+        transformations.push_back(new BrightnessImageTransform(-127, +127,10));
     }
 
     if (argc < 2)
@@ -129,6 +122,9 @@ int main(int argc, const char* argv[])
             std::cout << "done." << std::endl;
         }
 
+        fullStat.printAverage(std::cout, StatisticsElementHomographyError);
+        
+        /*
         std::ofstream performanceStr("Performance.txt");
         fullStat.printPerformanceStatistics(performanceStr);
 
@@ -147,11 +143,7 @@ int main(int argc, const char* argv[])
         std::ofstream homographyErrorStr("HomographyError.txt");
         fullStat.printStatistics(homographyErrorStr, StatisticsElementHomographyError);
 
-        //std::ofstream patternLocalizationStr("PatternLocalization.txt");
-        //fullStat.printStatistics(patternLocalizationStr, StatisticsElementPatternLocalization);
-        
-        std::ofstream reprojectionErrorStr("ReprojectionError.txt");
-        fullStat.printStatistics(reprojectionErrorStr, StatisticsElementAverageReprojectionError);
+        */
     }
 
     return 0;

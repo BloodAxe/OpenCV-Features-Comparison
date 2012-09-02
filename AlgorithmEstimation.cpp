@@ -46,7 +46,7 @@ bool performEstimation
  const ImageTransformation& transformation,
  const cv::Mat& sourceImage,
  std::vector<FrameMatchingStatistics>& stat
- )
+)
 {
     Keypoints   sourceKp;
     Descriptors sourceDesc;

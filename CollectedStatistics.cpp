@@ -4,6 +4,7 @@
 #include <iostream>
 #include <iterator>
 #include <numeric>
+#include <cassert>
 
 template<typename T>
 std::string quote(const T& t)
@@ -37,46 +38,59 @@ FrameMatchingStatistics::FrameMatchingStatistics()
     isValid = false;
 }
 
+
+bool FrameMatchingStatistics::tryGetValue(StatisticElement element, float& value) const
+{
+    if (!isValid)
+        return false;
+    
+    switch (element)
+    {
+        case  StatisticsElementPointsCount:
+            value = totalKeypoints;
+            return true;
+            
+        case StatisticsElementPercentOfCorrectMatches:
+            value = correctMatchesPercent * 100;
+            return true;
+            
+        case StatisticsElementPercentOfMatches:
+            value = percentOfMatches * 100;
+            return true;
+            
+        case StatisticsElementMeanDistance:
+            value = meanDistance;
+            return true;
+            
+        case StatisticsElementHomographyError:
+            value = homographyError;
+            return true;
+            
+        case StatisticsElementMatchingRatio:
+            value = matchingRatio();
+            return true;
+            
+        case StatisticsElementPatternLocalization:
+            value = patternLocalization();
+            return true;
+            
+        default:
+            return false;
+    }
+}
+
 std::ostream& FrameMatchingStatistics::writeElement(std::ostream& str, StatisticElement elem) const
 {
-    switch(elem)
+    float value;
+    
+    if (tryGetValue(elem, value))
     {
-    case StatisticsElementPercentOfCorrectMatches:
-        str << (isValid ? correctMatchesPercent * 100 : 0) << tab;
-        break;
-
-    case StatisticsElementPercentOfMatches:
-        str << percentOfMatches * 100 << tab;
-        break;
-
-    case StatisticsElementPointsCount:
-        str << totalKeypoints << tab;
-        break;
-
-    case StatisticsElementMeanDistance:
-        str << (isValid ? meanDistance : 0) << tab;
-        break;
-
-    case StatisticsElementMatchingRatio:
-        str << (isValid ? (correctMatchesPercent * percentOfMatches * 100) : 0) << tab;
-        break;
-
-    case StatisticsElementHomographyError:
-        str << (isValid ? homographyError : -1) << tab;
-        break;
-
-    case StatisticsElementPatternLocalization:
-        str << (isValid ? (correctMatchesPercent * percentOfMatches * (1.0 - homographyError)) : 0)  << tab;
-        break;
-
-    case StatisticsElementAverageReprojectionError:
-        str << (isValid ? reprojectionError(0) : -1) << tab;
-        break;
-
-    default:
+        str << value << tab;
+    }
+    else
+    {
         str << null << tab;
-        break;
-    };
+    }
 
     return str;
 }
@@ -148,6 +162,21 @@ CollectedStatistics::OuterGroupLine CollectedStatistics::groupByTransformationTh
 
 
     return line;
+}
+
+std::ostream& CollectedStatistics::printAverage(std::ostream& str, StatisticElement elem) const
+{
+    OuterGroup result;
+    str << "Average" << std::endl;
+    
+    for (std::map<Key, SingleRunStatistics>::const_iterator i = m_allStats.begin(); i != m_allStats.end(); ++i)
+    {
+        result[i->first.second][i->first.first] = &(i->second);
+        
+        str << i->first.first << tab << i->first.second << tab << average(i->second, elem) << std::endl;
+    }
+    
+    return str;
 }
 
 std::ostream& CollectedStatistics::printStatistics(std::ostream& str, StatisticElement elem) const
@@ -223,3 +252,45 @@ std::ostream& CollectedStatistics::printPerformanceStatistics(std::ostream& str)
 
     return str << std::endl;
 }
+
+float average(const SingleRunStatistics& statistics, StatisticElement element)
+{
+    std::vector<float> scores;
+    
+    for (size_t i = 0; i< statistics.size(); i++)
+    {
+        float value;
+        bool valid = statistics[i].tryGetValue(element, value);
+        
+        if (valid)
+        {
+            scores.push_back(value);
+        }
+    }
+    
+    float sum     = std::accumulate(scores.begin(), scores.end(), 0.0f);
+    float average = sum / scores.size();
+    return average;
+}
+
+float maximum(const SingleRunStatistics& statistics, StatisticElement element)
+{
+    std::vector<float> scores;
+    
+    for (size_t i = 0; i< statistics.size(); i++)
+    {
+        float value;
+        bool valid = statistics[i].tryGetValue(element, value);
+        
+        if (valid)
+        {
+            scores.push_back(value);
+        }
+    }
+    
+    assert(!scores.empty());
+    
+    float max = *std::max_element(scores.begin(), scores.end());
+    return max;
+}
+
