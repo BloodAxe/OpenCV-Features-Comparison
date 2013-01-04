@@ -118,14 +118,14 @@ std::vector<float> ImageRotationTransformation::getX() const
 
 void ImageRotationTransformation::transform(float t, const cv::Mat& source, cv::Mat& result) const
 {
-    cv::Point2f center(source.cols * m_rotationCenterInUnitSpace.x, source.cols * m_rotationCenterInUnitSpace.y);
+    cv::Point2f center(source.cols * m_rotationCenterInUnitSpace.x, source.rows * m_rotationCenterInUnitSpace.y);
     cv::Mat rotationMat = cv::getRotationMatrix2D(center, t, 1);
     cv::warpAffine(source, result, rotationMat, source.size(), cv::INTER_CUBIC);
 }
 
 cv::Mat ImageRotationTransformation::getHomography(float t, const cv::Mat& source) const
 {
-    cv::Point2f center(source.cols * m_rotationCenterInUnitSpace.x, source.cols * m_rotationCenterInUnitSpace.y);
+    cv::Point2f center(source.cols * m_rotationCenterInUnitSpace.x, source.rows * m_rotationCenterInUnitSpace.y);
     cv::Mat rotationMat = cv::getRotationMatrix2D(center, t, 1);
     
     cv::Mat h = cv::Mat::eye(3,3, CV_64FC1);
