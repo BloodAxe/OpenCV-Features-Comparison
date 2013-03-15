@@ -1,7 +1,6 @@
 
 #include "ImageTransformation.hpp"
 #include "AlgorithmEstimation.hpp"
-#include "brisk.h"
 
 #include <opencv2/opencv.hpp>
 #include <opencv2/nonfree/features2d.hpp>
@@ -21,13 +20,15 @@ int main(int argc, const char* argv[])
 
     // Initialize list of algorithm tuples:
        
+    algorithms.push_back(FeatureAlgorithm("KAZE",
+        new cv::KAZE(),
+        new cv::FlannBasedMatcher()));
+
     algorithms.push_back(FeatureAlgorithm("BRISK",
-        new cv::BriskFeatureDetector(60,4),
-        new cv::BriskDescriptorExtractor(),
+        new cv::BRISK(60,4),
         new cv::BFMatcher(cv::NORM_HAMMING, useCrossCheck)));
 
     algorithms.push_back(FeatureAlgorithm("ORB",
-        new cv::ORB(),
         new cv::ORB(),
         new cv::BFMatcher(cv::NORM_HAMMING, useCrossCheck)));
     
@@ -36,6 +37,7 @@ int main(int argc, const char* argv[])
         new cv::FREAK(),
         new cv::BFMatcher(cv::NORM_HAMMING, useCrossCheck)));
 
+    /*
     algorithms.push_back(FeatureAlgorithm("SURF+BRISK",
         new cv::SurfFeatureDetector(),
         new cv::BriskDescriptorExtractor(),
@@ -50,6 +52,9 @@ int main(int argc, const char* argv[])
         new cv::SurfFeatureDetector(),
         new cv::SurfDescriptorExtractor(),
         new cv::FlannBasedMatcher()));
+        */
+
+
     /*
     algorithms.push_back(FeatureAlgorithm("ORB+FREAK(normalized)",
         new cv::OrbFeatureDetector(),
@@ -124,26 +129,26 @@ int main(int argc, const char* argv[])
 
         fullStat.printAverage(std::cout, StatisticsElementHomographyError);
         
-        /*
+        
         std::ofstream performanceStr("Performance.txt");
         fullStat.printPerformanceStatistics(performanceStr);
 
-        //std::ofstream matchingRatioStr("MatchingRatio.txt");
-        //fullStat.printStatistics(matchingRatioStr,  StatisticsElementMatchingRatio);
+        std::ofstream matchingRatioStr("MatchingRatio.txt");
+        fullStat.printStatistics(matchingRatioStr,  StatisticsElementMatchingRatio);
 
-        //std::ofstream percentOfMatchesStr("PercentOfMatches.txt") ;
-        //fullStat.printStatistics(percentOfMatchesStr, StatisticsElementPercentOfMatches);
+        std::ofstream percentOfMatchesStr("PercentOfMatches.txt") ;
+        fullStat.printStatistics(percentOfMatchesStr, StatisticsElementPercentOfMatches);
 
         std::ofstream percentOfCorrectMatchesStr("PercentOfCorrectMatches.txt");
         fullStat.printStatistics(percentOfCorrectMatchesStr, StatisticsElementPercentOfCorrectMatches);
 
-        //std::ofstream meanDistanceStr("MeanDistance.txt");
-        //fullStat.printStatistics(meanDistanceStr, StatisticsElementMeanDistance);
+        std::ofstream meanDistanceStr("MeanDistance.txt");
+        fullStat.printStatistics(meanDistanceStr, StatisticsElementMeanDistance);
 
         std::ofstream homographyErrorStr("HomographyError.txt");
         fullStat.printStatistics(homographyErrorStr, StatisticsElementHomographyError);
 
-        */
+        /**/
     }
 
     return 0;
