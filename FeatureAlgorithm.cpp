@@ -13,18 +13,33 @@ FeatureAlgorithm::FeatureAlgorithm(std::string n, cv::Ptr<cv::FeatureDetector> d
     assert(m);
 }
 
+FeatureAlgorithm::FeatureAlgorithm(std::string n, cv::Ptr<cv::Feature2D> fe, cv::Ptr<cv::DescriptorMatcher> m)
+: name(n)
+, knMatchSupported(false)
+, featureEngine(fe)
+, matcher(m)
+{
+}
+
+
 bool FeatureAlgorithm::extractFeatures(const cv::Mat& image, Keypoints& kp, Descriptors& desc) const
 {
-    assert(detector);
-    assert(extractor);
     assert(!image.empty());
+
+    if (featureEngine)
+    {
+        (*featureEngine)(image, cv::noArray(), kp, desc);
+    }
+    else
+    {
+        detector->detect(image, kp);
     
-    detector->detect(image, kp);
+        if (kp.empty())
+            return false;
     
-    if (kp.empty())
-        return false;
+        extractor->compute(image, kp, desc);
+    }
     
-    extractor->compute(image, kp, desc);
     
     return kp.size() > 0;
 }

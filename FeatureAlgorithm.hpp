@@ -12,7 +12,9 @@ class FeatureAlgorithm
 {
 public:
     FeatureAlgorithm(std::string name, cv::Ptr<cv::FeatureDetector> d, cv::Ptr<cv::DescriptorExtractor> e, cv::Ptr<cv::DescriptorMatcher> m);
-    
+
+    FeatureAlgorithm(std::string name, cv::Ptr<cv::Feature2D> featureEngine, cv::Ptr<cv::DescriptorMatcher> m);
+
     //! Human-friendly name of detection/extraction/matcher combination.
 	std::string name;
 
@@ -30,6 +32,8 @@ public:
     
     
 private:
+    cv::Ptr<cv::Feature2D>           featureEngine;
+
     cv::Ptr<cv::FeatureDetector>     detector;
 	cv::Ptr<cv::DescriptorExtractor> extractor;
 	cv::Ptr<cv::DescriptorMatcher>   matcher;
