@@ -38,8 +38,8 @@ struct FrameMatchingStatistics
     cv::Scalar reprojectionError;
     bool   isValid;
 
-    inline float matchingRatio()       const { return correctMatchesPercent * percentOfMatches * 100; };
-    inline float patternLocalization() const { return correctMatchesPercent * percentOfMatches * (1.0 - homographyError); }
+    inline float matchingRatio()       const { return correctMatchesPercent * percentOfMatches * 100.0f; };
+    inline float patternLocalization() const { return correctMatchesPercent * percentOfMatches * (1.0f - homographyError); }
     
     std::ostream& writeElement(std::ostream& str, StatisticElement elem) const;
     bool tryGetValue(StatisticElement element, float& value) const;
