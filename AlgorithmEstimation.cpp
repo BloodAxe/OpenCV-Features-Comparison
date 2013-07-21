@@ -67,7 +67,6 @@ bool performEstimation
     
     const int count = x.size();
     
-    cv::Mat     transformedImage;
     Keypoints   resKpReal;
     Descriptors resDesc;
     Matches     matches;
@@ -75,18 +74,17 @@ bool performEstimation
     // To convert ticks to milliseconds
     const double toMsMul = 1000. / cv::getTickFrequency();
     
-#pragma omp parallel for private(transformedImage, resKpReal, resDesc, matches)
+    #pragma omp parallel for private(resKpReal, resDesc, matches) schedule(dynamic, 5)
     for (int i = 0; i < count; i++)
     {
         float       arg = x[i];
         FrameMatchingStatistics& s = stat[i];
         
+        cv::Mat     transformedImage;
         transformation.transform(arg, gray, transformedImage);
+
         cv::Mat expectedHomography = transformation.getHomography(arg, gray);
-        
-        //cv::imshow("transformedImage",transformedImage);
-        //cv::waitKey(-1);
-        
+                
         int64 start = cv::getTickCount();
         
         alg.extractFeatures(transformedImage, resKpReal, resDesc);
