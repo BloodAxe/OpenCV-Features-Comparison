@@ -1,24 +1,25 @@
 #include "FeatureAlgorithm.hpp"
 #include <cassert>
 
-FeatureAlgorithm::FeatureAlgorithm(std::string n, cv::Ptr<cv::FeatureDetector> d, cv::Ptr<cv::DescriptorExtractor> e, cv::Ptr<cv::DescriptorMatcher> m)
+FeatureAlgorithm::FeatureAlgorithm(const std::string& n, cv::Ptr<cv::FeatureDetector> d, cv::Ptr<cv::DescriptorExtractor> e, cv::Ptr<cv::DescriptorMatcher> m)
 : name(n)
 , knMatchSupported(false)
 , detector(d)
 , extractor(e)
 , matcher(m)
 {
-    assert(d);
-    assert(e);
-    assert(m);
+    CV_Assert(d);
+    CV_Assert(e);
+    CV_Assert(m);
 }
 
-FeatureAlgorithm::FeatureAlgorithm(std::string n, cv::Ptr<cv::Feature2D> fe, cv::Ptr<cv::DescriptorMatcher> m)
+FeatureAlgorithm::FeatureAlgorithm(const std::string& n, cv::Ptr<cv::Feature2D> fe, cv::Ptr<cv::DescriptorMatcher> m)
 : name(n)
 , knMatchSupported(false)
 , featureEngine(fe)
 , matcher(m)
 {
+    CV_Assert(fe);
 }
 
 

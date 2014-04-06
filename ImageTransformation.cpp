@@ -1,7 +1,5 @@
 #include "ImageTransformation.hpp"
 
-#pragma mark - ImageTransformation default implementation
-
 bool ImageTransformation::canTransformKeypoints() const
 {
     return false;
@@ -40,7 +38,7 @@ bool ImageTransformation::findHomography( const Keypoints& source, const Keypoin
       
     // Find homography using RANSAC algorithm
     std::vector<unsigned char> status;
-    homography = cv::findHomography(srcPoints, dstPoints, CV_FM_RANSAC, reprojectionThreshold, status);
+    homography = cv::findHomography(srcPoints, dstPoints, cv::RANSAC, reprojectionThreshold, status);
     
     // Warp dstPoints to srcPoints domain using inverted homography transformation
     std::vector<cv::Point2f> srcReprojected;
@@ -155,7 +153,7 @@ std::vector<float> ImageScalingTransformation::getX() const
 void ImageScalingTransformation::transform(float t, const cv::Mat& source, cv::Mat& result)const
 {
     cv::Size dstSize(static_cast<int>(source.cols * t + 0.5f), static_cast<int>(source.rows * t + 0.5f));
-    cv::resize(source, result, dstSize, CV_INTER_AREA);
+    cv::resize(source, result, dstSize, cv::INTER_AREA);
 }
 
 cv::Mat ImageScalingTransformation::getHomography(float t, const cv::Mat& source) const

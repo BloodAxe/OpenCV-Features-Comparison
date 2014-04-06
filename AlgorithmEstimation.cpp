@@ -53,9 +53,9 @@ bool performEstimation
     
     cv::Mat gray;
     if (sourceImage.channels() == 3)
-        cv::cvtColor(sourceImage, gray, CV_BGR2GRAY);
+        cv::cvtColor(sourceImage, gray, cv::COLOR_BGR2GRAY);
     else if (sourceImage.channels() == 4)
-        cv::cvtColor(sourceImage, gray, CV_BGRA2GRAY);
+        cv::cvtColor(sourceImage, gray, cv::COLOR_BGRA2GRAY);
     else if(sourceImage.channels() == 1)
         gray = sourceImage;
     
