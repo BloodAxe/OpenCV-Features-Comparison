@@ -76,28 +76,15 @@ int main(int argc, const char* argv[])
             std::cout << "done." << std::endl;
         }
 
-        fullStat.printAverage(std::cout, StatisticsElementHomographyError);
-        
-        
-        std::ofstream performanceStr("Performance.txt");
-        fullStat.printPerformanceStatistics(performanceStr);
+        fullStat.printAverage(std::cout, StatisticsElementRecall);
+        fullStat.printAverage(std::cout, StatisticsElementPrecision);
 
-        std::ofstream matchingRatioStr("MatchingRatio.txt");
-        fullStat.printStatistics(matchingRatioStr,  StatisticsElementMatchingRatio);
 
-        std::ofstream percentOfMatchesStr("PercentOfMatches.txt") ;
-        fullStat.printStatistics(percentOfMatchesStr, StatisticsElementPercentOfMatches);
+        std::ofstream recallLog("Recall.txt");
+        fullStat.printStatistics(recallLog, StatisticsElementRecall);
 
-        std::ofstream percentOfCorrectMatchesStr("PercentOfCorrectMatches.txt");
-        fullStat.printStatistics(percentOfCorrectMatchesStr, StatisticsElementPercentOfCorrectMatches);
-
-        std::ofstream meanDistanceStr("MeanDistance.txt");
-        fullStat.printStatistics(meanDistanceStr, StatisticsElementMeanDistance);
-
-        std::ofstream homographyErrorStr("HomographyError.txt");
-        fullStat.printStatistics(homographyErrorStr, StatisticsElementHomographyError);
-
-        /**/
+        std::ofstream precisionLog("Precision.txt");
+        fullStat.printStatistics(precisionLog, StatisticsElementPrecision);
     }
 
     return 0;
