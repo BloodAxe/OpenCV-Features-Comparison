@@ -22,11 +22,13 @@ ImageTransformation::~ImageTransformation()
 
 bool ImageTransformation::findHomography( const Keypoints& source, const Keypoints& result, const Matches& input, Matches& inliers, cv::Mat& homography)
 {
+    inliers.clear();
+
     if (input.size() < 4)
         return false;
     
     const int pointsCount = input.size();
-    const float reprojectionThreshold = 2;
+    const float reprojectionThreshold = 3;
 
     //Prepare src and dst points
     std::vector<cv::Point2f> srcPoints, dstPoints;    
@@ -35,11 +37,24 @@ bool ImageTransformation::findHomography( const Keypoints& source, const Keypoin
         srcPoints.push_back(source[input[i].trainIdx].pt);
         dstPoints.push_back(result[input[i].queryIdx].pt);
     }
-      
+
     // Find homography using RANSAC algorithm
     std::vector<unsigned char> status;
-    homography = cv::findHomography(srcPoints, dstPoints, cv::RANSAC, reprojectionThreshold, status);
-    
+    homography = cv::findHomography(srcPoints, dstPoints, cv::LMEDS, reprojectionThreshold, status);
+
+    if (homography.empty() || std::count(status.begin(), status.end(), 1) < 4)
+        return false;
+
+    for (int i = 0; i < pointsCount; i++)
+    {
+        if (status[i])
+        {
+            inliers.push_back(input[i]);
+        }
+    }
+    return true;
+
+    /*
     // Warp dstPoints to srcPoints domain using inverted homography transformation
     std::vector<cv::Point2f> srcReprojected;
     cv::perspectiveTransform(dstPoints, srcReprojected, homography.inv());
@@ -53,12 +68,12 @@ bool ImageTransformation::findHomography( const Keypoints& source, const Keypoin
         cv::Point2f v = actual - expect;
         float distanceSquared = v.dot(v);
         
-        if (/*status[i] && */distanceSquared <= reprojectionThreshold * reprojectionThreshold)
+        if (distanceSquared <= reprojectionThreshold * reprojectionThreshold)
         {
             inliers.push_back(input[i]);
         }
     }
-    
+
     // Test for bad case
     if (inliers.size() < 4)
         return false;
@@ -93,6 +108,7 @@ bool ImageTransformation::findHomography( const Keypoints& source, const Keypoin
  
     homography = homography2;
     return inliers.size() >= 4;
+    */
 }
 
 #pragma mark - ImageRotationTransformation implementation
