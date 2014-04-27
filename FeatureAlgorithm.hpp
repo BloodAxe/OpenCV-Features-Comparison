@@ -7,13 +7,13 @@ typedef std::vector<cv::KeyPoint> Keypoints;
 typedef cv::Mat                   Descriptors;
 typedef std::vector<cv::DMatch>   Matches;
 
-//! Represents combination of feature detector, descripotr extractor and matcher algorithms for test
+//! Represents combination of feature detector, descriptor extractor and matcher algorithms for test
 class FeatureAlgorithm
 {
 public:
-    FeatureAlgorithm(const std::string& name, cv::Ptr<cv::FeatureDetector> d, cv::Ptr<cv::DescriptorExtractor> e, cv::Ptr<cv::DescriptorMatcher> m);
+    explicit FeatureAlgorithm(const std::string& name, cv::Ptr<cv::FeatureDetector> d, cv::Ptr<cv::DescriptorExtractor> e, bool useBruteForceMather);
 
-    FeatureAlgorithm(const std::string& name, cv::Ptr<cv::Feature2D> featureEngine, cv::Ptr<cv::DescriptorMatcher> m);
+    explicit FeatureAlgorithm(const std::string& name, cv::Ptr<cv::Feature2D> featureEngine, bool useBruteForceMather);
 
     //! Human-friendly name of detection/extraction/matcher combination.
     std::string name;

@@ -16,82 +16,31 @@ int main(int argc, const char* argv[])
     std::vector<FeatureAlgorithm>              algorithms;
     std::vector<cv::Ptr<ImageTransformation> > transformations;
 
-    bool useCrossCheck = true;
+    bool useBF = true;
 
     // Initialize list of algorithm tuples:
-       
-    algorithms.push_back(FeatureAlgorithm("KAZE",
-        new cv::KAZE(),
-        new cv::FlannBasedMatcher()));
 
-    algorithms.push_back(FeatureAlgorithm("BRISK",
-        new cv::BRISK(60,4),
-        new cv::BFMatcher(cv::NORM_HAMMING, useCrossCheck)));
-
-    algorithms.push_back(FeatureAlgorithm("ORB",
-        new cv::ORB(),
-        new cv::BFMatcher(cv::NORM_HAMMING, useCrossCheck)));
-    
-    algorithms.push_back(FeatureAlgorithm("FREAK",
-        new cv::SurfFeatureDetector(),
-        new cv::FREAK(),
-        new cv::BFMatcher(cv::NORM_HAMMING, useCrossCheck)));
-
-    /*
-    algorithms.push_back(FeatureAlgorithm("SURF+BRISK",
-        new cv::SurfFeatureDetector(),
-        new cv::BriskDescriptorExtractor(),
-        new cv::BFMatcher(cv::NORM_HAMMING, useCrossCheck)));
-
-    algorithms.push_back(FeatureAlgorithm("SURF BF",
-        new cv::SurfFeatureDetector(),
-        new cv::SurfDescriptorExtractor(),
-        new cv::BFMatcher(cv::NORM_L2, useCrossCheck)));
-
-    algorithms.push_back(FeatureAlgorithm("SURF FLANN",
-        new cv::SurfFeatureDetector(),
-        new cv::SurfDescriptorExtractor(),
-        new cv::FlannBasedMatcher()));
-        */
-
-
-    /*
-    algorithms.push_back(FeatureAlgorithm("ORB+FREAK(normalized)",
-        new cv::OrbFeatureDetector(),
-        new cv::FREAK(),
-        new cv::BFMatcher(cv::NORM_HAMMING, useCrossCheck)));
-
-    algorithms.push_back(FeatureAlgorithm("FREAK(normalized)",
-        new cv::SurfFeatureDetector(),
-        new cv::FREAK(),
-        new cv::BFMatcher(cv::NORM_HAMMING, useCrossCheck)));
-
-
-    algorithms.push_back(FeatureAlgorithm("FAST+BRIEF",
-        new cv::FastFeatureDetector(50),
-        new cv::BriefDescriptorExtractor(),
-        new cv::BFMatcher(cv::NORM_HAMMING, useCrossCheck)));
-
-
-
-    
-
-    /**/
+    algorithms.push_back(FeatureAlgorithm("ORB",   cv::Feature2D::create("ORB"),   useBF));
+    algorithms.push_back(FeatureAlgorithm("AKAZE", cv::Feature2D::create("AKAZE"), useBF));
+    algorithms.push_back(FeatureAlgorithm("KAZE",  cv::Feature2D::create("KAZE"),  useBF));
+    algorithms.push_back(FeatureAlgorithm("BRISK", cv::Feature2D::create("BRISK"), useBF));
+    algorithms.push_back(FeatureAlgorithm("SURF",  cv::Feature2D::create("SURF"),  useBF));
+    algorithms.push_back(FeatureAlgorithm("FREAK", cv::Ptr<cv::FeatureDetector>(new cv::SurfFeatureDetector(2000,4)), cv::Ptr<cv::DescriptorExtractor>(new cv::FREAK()), useBF));
 
     // Initialize list of used transformations:
     if (USE_VERBOSE_TRANSFORMATIONS)
     {
-        transformations.push_back(new GaussianBlurTransform(9));
-        transformations.push_back(new BrightnessImageTransform(-127, +127,1));
-        transformations.push_back(new ImageRotationTransformation(0, 360, 1, cv::Point2f(0.5f,0.5f)));
-        transformations.push_back(new ImageScalingTransformation(0.25f, 2.0f, 0.01f));
+        transformations.push_back(cv::Ptr<ImageTransformation>(new GaussianBlurTransform(9)));
+        transformations.push_back(cv::Ptr<ImageTransformation>(new BrightnessImageTransform(-127, +127, 1)));
+        transformations.push_back(cv::Ptr<ImageTransformation>(new ImageRotationTransformation(0, 360, 1, cv::Point2f(0.5f, 0.5f))));
+        transformations.push_back(cv::Ptr<ImageTransformation>(new ImageScalingTransformation(0.25f, 2.0f, 0.01f)));
     }
     else
     {
-        transformations.push_back(new GaussianBlurTransform(9));
-        transformations.push_back(new ImageRotationTransformation(0, 360, 10, cv::Point2f(0.5f,0.5f)));
-        transformations.push_back(new ImageScalingTransformation(0.25f, 2.0f, 0.1f));
-        transformations.push_back(new BrightnessImageTransform(-127, +127,10));
+        transformations.push_back(cv::Ptr<ImageTransformation>(new GaussianBlurTransform(9)));
+        transformations.push_back(cv::Ptr<ImageTransformation>(new ImageRotationTransformation(0, 360, 10, cv::Point2f(0.5f, 0.5f))));
+        transformations.push_back(cv::Ptr<ImageTransformation>(new ImageScalingTransformation(0.25f, 2.0f, 0.1f)));
+        transformations.push_back(cv::Ptr<ImageTransformation>(new BrightnessImageTransform(-127, +127, 10)));
     }
 
     if (argc < 2)
@@ -119,7 +68,7 @@ int main(int argc, const char* argv[])
 
             for (size_t transformIndex = 0; transformIndex < transformations.size(); transformIndex++)
             {
-                const ImageTransformation& trans = *transformations[transformIndex].obj;
+                const ImageTransformation& trans = *transformations[transformIndex].get();
 
                 performEstimation(alg, trans, testImage.clone(), fullStat.getStatistics(alg.name, trans.name));
             }
