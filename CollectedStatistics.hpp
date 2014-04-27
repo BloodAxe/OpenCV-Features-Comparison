@@ -16,7 +16,9 @@ typedef enum
     StatisticsElementMatchingRatio,
     StatisticsElementHomographyError,
     StatisticsElementPatternLocalization,
-    StatisticsElementAverageReprojectionError
+    StatisticsElementAverageReprojectionError,
+    StatisticsElementRecall,
+    StatisticsElementPrecision
 
 } StatisticElement;
 
@@ -34,7 +36,10 @@ struct FrameMatchingStatistics
     float correctMatchesPercent;
     float homographyError;
 
-    double consumedTimeMs;
+    float recall;
+    float precision;
+
+    float consumedTimeMs;
     cv::Scalar reprojectionError;
     bool   isValid;
 

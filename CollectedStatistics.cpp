@@ -33,6 +33,8 @@ FrameMatchingStatistics::FrameMatchingStatistics()
     meanDistance = 0;
     stdDevDistance = 0;
     correctMatchesPercent = 0;
+    recall = 0;
+    precision = 0;
     consumedTimeMs = 0;
     homographyError = std::numeric_limits<float>::max();
     isValid = false;
@@ -73,7 +75,14 @@ bool FrameMatchingStatistics::tryGetValue(StatisticElement element, float& value
         case StatisticsElementPatternLocalization:
             value = patternLocalization();
             return true;
-            
+
+        case StatisticsElementPrecision:
+            value = precision;
+            return true;
+
+        case StatisticsElementRecall:
+            value = recall;
+            return true;
         default:
             return false;
     }
